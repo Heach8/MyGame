@@ -5,19 +5,33 @@ extends SceneTree
 const AvatarData = preload("res://scripts/avatar_data.gd")
 const PhotoPickerScript = preload("res://scripts/photo_picker.gd")
 
+const EXPECTED_CHECKS := 17
+
 var failures := 0
+var checks := 0
+var _done := false
 
 
-func _initialize() -> void:
+## Testler ilk karede çalışır; böylece sahne ağacı hazırdır ve eklenen düğümlerin _ready'si çağrılır.
+func _process(_delta: float) -> bool:
+	if _done:
+		return true
+	_done = true
 	_test_names()
 	_test_sanitize()
 	_test_nearest()
 	_test_photo_sampling()
-	print("Testler bitti: %d hata" % failures)
+	# Bir test betik hatasıyla yarıda kalırsa kontrol sayısı eksik kalır; bunu da hata sayarız.
+	if checks != EXPECTED_CHECKS:
+		failures += 1
+		printerr("  HATA   %d kontrol bekleniyordu, %d çalıştı" % [EXPECTED_CHECKS, checks])
+	print("Testler bitti: %d kontrol, %d hata" % [checks, failures])
 	quit(1 if failures > 0 else 0)
+	return false
 
 
 func _check(ok: bool, what: String) -> void:
+	checks += 1
 	if ok:
 		print("  tamam  ", what)
 	else:
