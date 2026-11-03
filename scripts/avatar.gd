@@ -54,7 +54,7 @@ func setup(look: Dictionary) -> void:
 	skin_mat = _soft_mat(Color.WHITE, 0.6, 0.08)
 	body_mat = _soft_mat(Color.WHITE, 0.92, 0.05)
 	hair_mat = _soft_mat(Color.WHITE, 0.5, 0.15)
-	brow_mat = hair_mat
+	brow_mat = _soft_mat(Color.WHITE, 0.6, 0.0)
 	eye_mat = MapBuilder.mat(Color.WHITE, 0.25)
 	pants_mat = _soft_mat(Color.WHITE, 0.95, 0.05)
 	var shoe_mat := _soft_mat(Color("f4f1ea"), 0.7, 0.1)
@@ -150,15 +150,30 @@ func setup(look: Dictionary) -> void:
 func _build_face() -> void:
 	# Kafatası ve çene: yumurta biçimli dönel yüzey, yüz tarafı hafif öne çıkık.
 	var skull := _mesh(head, _lathe([
-		[-0.27, 0.0], [-0.265, 0.04], [-0.25, 0.085], [-0.225, 0.125], [-0.19, 0.157], [-0.15, 0.181],
+		[-0.27, 0.0], [-0.266, 0.035], [-0.255, 0.07], [-0.235, 0.105], [-0.205, 0.14], [-0.165, 0.171],
 		[-0.1, 0.198], [-0.05, 0.208], [0.0, 0.213], [0.05, 0.215], [0.1, 0.208], [0.14, 0.195],
 		[0.18, 0.174], [0.215, 0.145], [0.24, 0.11], [0.258, 0.07], [0.268, 0.035], [0.27, 0.0]], 36), skin_mat, Vector3.ZERO)
 	skull.scale = Vector3(1.0, 1.0, 1.06)
+	# Belirgin çene ucu
+	var chin := _mesh(head, MapBuilder.sphere(0.045, 14, 8), skin_mat, Vector3(0, -0.232, 0.15))
+	chin.scale = Vector3(1.25, 0.8, 0.85)
+	var blush := _soft_mat(Color(0.93, 0.55, 0.55, 0.28), 0.8, 0.0)
+	blush.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	for side in [-1.0, 1.0]:
 		var ear := _mesh(head, MapBuilder.sphere(0.045, 10, 8), skin_mat, Vector3(0.205 * side, -0.02, 0.01))
 		ear.scale = Vector3(0.45, 1.0, 0.75)
+		# Elmacık kemiği ve hafif yanak pembeliği
+		var cheekbone := _mesh(head, MapBuilder.sphere(0.055, 14, 8), skin_mat, Vector3(0.112 * side, -0.05, 0.152))
+		cheekbone.scale = Vector3(1.25, 0.7, 0.75)
+		var rosy := _mesh(head, MapBuilder.sphere(0.04, 12, 8), blush, Vector3(0.118 * side, -0.065, 0.178))
+		rosy.scale = Vector3(1.3, 0.75, 0.5)
+		# Kaş kemeri: gözün üstüne hafif gölge düşürür
+		var ridge := _mesh(head, _capsule_x(0.02, 0.085), skin_mat, Vector3(0.078 * side, 0.052, 0.19))
+		ridge.rotation.z = PI / 2.0 - 0.1 * side
+		ridge.scale = Vector3(1.0, 1.0, 0.75)
 
 	var white := MapBuilder.mat(Color("fbfbf8"), 0.3)
+	var lash_mat := MapBuilder.mat(Color("2a1c1c"), 0.6)
 	var pupil := MapBuilder.mat(Color("15121a"), 0.2)
 	var shine := MapBuilder.mat(Color.WHITE, 0.1)
 	shine.emission_enabled = true
@@ -176,25 +191,45 @@ func _build_face() -> void:
 		var pup := _mesh(eye, MapBuilder.sphere(0.013, 10, 6), pupil, Vector3(0, -0.002, 0.03))
 		pup.scale = Vector3(1.0, 1.0, 0.4)
 		_mesh(eye, MapBuilder.sphere(0.0065, 6, 4), shine, Vector3(-0.009, 0.011, 0.034))
+		# Kirpik çizgisi: gözün üst kenarında koyu, dışa doğru kalkan çizgi
+		var lash := _mesh(eye, _capsule_x(0.0055, 0.082), lash_mat, Vector3(0.002 * side, 0.032, 0.014))
+		lash.rotation = Vector3(0.35, 0, PI / 2.0 + 0.08 * side)
+		var flick := _mesh(eye, _capsule_x(0.0045, 0.026), lash_mat, Vector3(0.043 * side, 0.034, 0.006))
+		flick.rotation.z = PI / 2.0 - 0.55 * side
+		var under := _mesh(eye, _capsule_x(0.003, 0.06), lash_mat, Vector3(0.003 * side, -0.031, 0.012))
+		under.rotation = Vector3(-0.3, 0, PI / 2.0)
+		under.transparency = 0.6
 		_lids.append(eye)  # göz kırparken dikeyde kapanır
 		# Kaş
-		var brow := _mesh(head, _capsule_x(0.011, 0.075), brow_mat, Vector3(0.082 * side, 0.074, 0.203))
-		brow.rotation.z = PI / 2.0 - 0.12 * side
+		var brow := _mesh(head, _capsule_x(0.0145, 0.082), brow_mat, Vector3(0.082 * side, 0.078, 0.204))
+		brow.rotation.z = PI / 2.0 - 0.14 * side
+		brow.scale = Vector3(1.0, 1.0, 0.6)
 
 	# Burun
-	var nose := _mesh(head, MapBuilder.sphere(0.021, 12, 8), skin_mat, Vector3(0, -0.05, 0.222))
-	nose.scale = Vector3(0.95, 0.85, 0.8)
-	var bridge := _mesh(head, MapBuilder.sphere(0.015, 10, 6), skin_mat, Vector3(0, -0.018, 0.218))
-	bridge.scale = Vector3(0.8, 2.0, 0.7)
+	var nose := _mesh(head, MapBuilder.sphere(0.022, 12, 8), skin_mat, Vector3(0, -0.052, 0.226))
+	nose.scale = Vector3(0.95, 0.85, 0.85)
+	var bridge := _mesh(head, MapBuilder.sphere(0.016, 10, 6), skin_mat, Vector3(0, -0.015, 0.22))
+	bridge.scale = Vector3(0.75, 2.4, 0.8)
+	var nostril_mat := _soft_mat(Color(0.35, 0.2, 0.18, 0.55), 0.9, 0.0)
+	nostril_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	for side in [-1.0, 1.0]:
+		var wing := _mesh(head, MapBuilder.sphere(0.014, 10, 6), skin_mat, Vector3(0.02 * side, -0.06, 0.214))
+		wing.scale = Vector3(1.0, 0.85, 0.9)
+		var hole := _mesh(head, MapBuilder.sphere(0.006, 8, 4), nostril_mat, Vector3(0.011 * side, -0.07, 0.225))
+		hole.scale = Vector3(1.2, 0.6, 1.0)
 
 	# Dudaklar
-	var lip_mat := _soft_mat(Color("c26f6c"), 0.45, 0.0)
-	var upper := _mesh(head, _capsule_x(0.0065, 0.054), lip_mat, Vector3(0, -0.119, 0.199))
-	upper.scale = Vector3(1.0, 1.0, 0.7)
-	upper.rotation.z = PI / 2.0
-	var lower := _mesh(head, _capsule_x(0.0085, 0.044), lip_mat, Vector3(0, -0.132, 0.195))
+	var lip_mat := _soft_mat(Color("b95c5e"), 0.4, 0.0)
+	for side in [-1.0, 1.0]:
+		# Üst dudak iki kavisten oluşur (ortada hafif çukur)
+		var upper := _mesh(head, _capsule_x(0.0085, 0.034), lip_mat, Vector3(0.013 * side, -0.117, 0.2))
+		upper.rotation.z = PI / 2.0 + 0.18 * side
+		upper.scale = Vector3(1.0, 1.0, 0.7)
+	var lower := _mesh(head, _capsule_x(0.0115, 0.044), lip_mat, Vector3(0, -0.133, 0.196))
 	lower.scale = Vector3(1.0, 1.0, 0.7)
 	lower.rotation.z = PI / 2.0
+	var line := _mesh(head, _capsule_x(0.0035, 0.062), lash_mat, Vector3(0, -0.124, 0.204))
+	line.rotation.z = PI / 2.0
 
 
 func apply_look(raw: Dictionary) -> void:
@@ -202,6 +237,7 @@ func apply_look(raw: Dictionary) -> void:
 	skin_mat.albedo_color = Color(str(look["skin"]))
 	body_mat.albedo_color = Color(str(look["body"]))
 	hair_mat.albedo_color = Color(str(look["hair"]))
+	brow_mat.albedo_color = Color(str(look["hair"])).darkened(0.35)
 	eye_mat.albedo_color = Color(str(look["eyes"]))
 	pants_mat.albedo_color = Color(str(look["pants"]))
 	label.text = str(look["name"])
