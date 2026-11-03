@@ -119,8 +119,8 @@ func _build_environment() -> void:
 	var sky_mat := ProceduralSkyMaterial.new()
 	sky_mat.sky_top_color = Color("4fa8e6")
 	sky_mat.sky_horizon_color = Color("c4e8fb")
-	sky_mat.ground_horizon_color = Color("c4e8fb")
-	sky_mat.ground_bottom_color = Color("2b8fc4")
+	sky_mat.ground_horizon_color = Color("d8eef5")
+	sky_mat.ground_bottom_color = Color("8fb58a")
 	sky_mat.sun_angle_max = 20.0
 
 	var sky := Sky.new()
@@ -130,9 +130,12 @@ func _build_environment() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.85
+	# Gökyüzü ışığının yarısı kadar sıcak beyaz ışık: tenler mavimsi görünmesin.
+	env.ambient_light_sky_contribution = 0.55
+	env.ambient_light_color = Color("fff4e6")
+	env.ambient_light_energy = 0.7
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.tonemap_exposure = 1.05
+	env.tonemap_exposure = 1.0
 	env.fog_enabled = true
 	env.fog_light_color = Color("d6f0fc")
 	env.fog_density = 0.004
@@ -145,7 +148,7 @@ func _build_environment() -> void:
 	sun.name = "Gunes"
 	sun.rotation_degrees = Vector3(-52.0, 35.0, 0.0)
 	sun.light_color = Color("fff0d4")
-	sun.light_energy = 1.25
+	sun.light_energy = 1.4
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 60.0
 	add_child(sun)

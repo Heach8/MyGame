@@ -30,6 +30,16 @@ func _process(_delta: float) -> bool:
 	elif _frame == 330:
 		_main.editor.hide()
 		_save("3_yakin.png")
+		var head: Node3D = _main.player.avatar.head
+		var fwd: Vector3 = _main.player.avatar.global_transform.basis.z
+		var cam := Camera3D.new()
+		_main.add_child(cam)
+		cam.global_position = head.global_position + fwd * 0.95 + Vector3(0.25, 0.05, 0)
+		cam.look_at(head.global_position, Vector3.UP)
+		cam.fov = 40.0
+		cam.make_current()
+	elif _frame == 340:
+		_save("4_yuz.png")
 		quit(0)
 	return false
 

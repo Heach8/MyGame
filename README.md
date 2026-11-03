@@ -7,8 +7,11 @@ Beren ve arkadaşlarının birlikte oynayacağı, haritasını ve avatarını ç
 
 ## Şu an oyunda neler var
 
+Ekran görüntüleri her derlemede otomatik alınır: GitHub'da `ekran/main` dalı.
+
 **Aşama 2: avatar**
 
+- Yarı gerçekçi karakterler: insan oranları, dizden ve dirsekten bükülen kollar ve bacaklar, eller, burun, kaş, göz bebeği ve dudaklı yüz; doğal yürüyüş, göz kırpma, nefes alma ve etrafa bakınma (`scripts/avatar.gd`, hepsi kodla üretilir)
 - Oyun ilk açıldığında avatar ekranı gelir; sonra sol üstteki **Avatarım** düğmesiyle tekrar açılır
 - Seçenekler: ad, ten rengi, saç modeli (kısa, uzun, at kuyruğu, topuz), saç rengi, göz rengi, tişört, pantolon, aksesuar (gözlük, şapka, fiyonk)
 - Karakter seçtikçe canlı değişir; avatar tablette `user://avatar.json` olarak saklanır
