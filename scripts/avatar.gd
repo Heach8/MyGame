@@ -1,10 +1,10 @@
 extends Node3D
 ## Çizgi film tarzı karakter: gövde, kollar, bacaklar, baş, saç, yüz ve isim etiketi.
 ## Karakter +Z yönüne bakar. Görünüm bir sözlükle verilir:
-## {"name": "Beren", "skin": "#f2c9a5", "hair": "#5a3825", "body": "#ff7aa8"}
-## 2. aşamada bu sözlük avatar editöründen ve fotoğraf analizinden gelecek.
+## Alanlar ve seçenekleri avatar_data.gd içinde (ten, saç modeli ve rengi, göz, tişört, pantolon, aksesuar).
 
 const MapBuilder = preload("res://scripts/map_builder.gd")
+const AvatarData = preload("res://scripts/avatar_data.gd")
 
 const HEAD_Y := 1.97
 
@@ -18,6 +18,13 @@ var label: Label3D
 var skin_mat: StandardMaterial3D
 var body_mat: StandardMaterial3D
 var hair_mat: StandardMaterial3D
+var eye_mat: StandardMaterial3D
+var pants_mat: StandardMaterial3D
+
+var _hair_root: Node3D
+var _acc_root: Node3D
+var _style := ""
+var _accessory := ""
 
 var _phase := 0.0
 var _amp := 0.0
@@ -27,7 +34,9 @@ func setup(look: Dictionary) -> void:
 	skin_mat = MapBuilder.mat(Color.WHITE, 0.75)
 	body_mat = MapBuilder.mat(Color.WHITE, 0.8)
 	hair_mat = MapBuilder.mat(Color.WHITE, 0.55)
-	var pants := MapBuilder.mat(Color("34426b"))
+	eye_mat = MapBuilder.mat(Color.WHITE, 0.4)
+	pants_mat = MapBuilder.mat(Color.WHITE, 0.85)
+	var pants := pants_mat
 	var shoes := MapBuilder.mat(Color("2a2a35"))
 	var dark := MapBuilder.mat(Color("2b2233"), 0.4)
 	var white := MapBuilder.mat(Color.WHITE, 0.3)
@@ -54,7 +63,7 @@ func setup(look: Dictionary) -> void:
 	for side in [-1.0, 1.0]:
 		var ear := _mesh(head, MapBuilder.sphere(0.11, 10, 6), skin_mat, Vector3(0.55 * side, -0.02, 0))
 		ear.scale = Vector3(0.6, 1.0, 1.0)
-		var eye := _mesh(head, MapBuilder.sphere(0.085, 12, 8), dark, Vector3(0.19 * side, -0.02, 0.5))
+		var eye := _mesh(head, MapBuilder.sphere(0.085, 12, 8), eye_mat, Vector3(0.19 * side, -0.02, 0.5))
 		eye.scale = Vector3(1.0, 1.25, 0.6)
 		_mesh(head, MapBuilder.sphere(0.03, 8, 6), white, Vector3(0.19 * side - 0.03, 0.04, 0.56))
 		var ch := _mesh(head, MapBuilder.sphere(0.09, 10, 6), cheek, Vector3(0.32 * side, -0.14, 0.42))
@@ -62,17 +71,10 @@ func setup(look: Dictionary) -> void:
 	var mouth := _mesh(head, MapBuilder.sphere(0.07, 10, 6), dark, Vector3(0, -0.19, 0.51))
 	mouth.scale = Vector3(1.4, 0.5, 0.4)
 
-	# Saç: üstte kâkül yapan bir kubbe, arkada başı saran bir küre.
-	var cap_mesh := SphereMesh.new()
-	cap_mesh.radius = 0.59
-	cap_mesh.height = 0.59
-	cap_mesh.is_hemisphere = true
-	cap_mesh.radial_segments = 32
-	cap_mesh.rings = 10
-	var cap := _mesh(head, cap_mesh, hair_mat, Vector3(0, 0.14, 0))
-	cap.scale = Vector3(1.0, 0.8, 1.0)
-	var back := _mesh(head, MapBuilder.sphere(0.58, 24, 12), hair_mat, Vector3(0, 0.02, -0.08))
-	back.scale = Vector3(1.0, 1.0, 0.9)
+	_hair_root = Node3D.new()
+	head.add_child(_hair_root)
+	_acc_root = Node3D.new()
+	head.add_child(_acc_root)
 
 	label = Label3D.new()
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -87,11 +89,82 @@ func setup(look: Dictionary) -> void:
 	apply_look(look)
 
 
-func apply_look(look: Dictionary) -> void:
-	skin_mat.albedo_color = Color(str(look.get("skin", "#f2c9a5")))
-	body_mat.albedo_color = Color(str(look.get("body", "#ff7aa8")))
-	hair_mat.albedo_color = Color(str(look.get("hair", "#5a3825")))
-	label.text = str(look.get("name", "Ben"))
+func apply_look(raw: Dictionary) -> void:
+	var look := AvatarData.sanitize(raw)
+	skin_mat.albedo_color = Color(str(look["skin"]))
+	body_mat.albedo_color = Color(str(look["body"]))
+	hair_mat.albedo_color = Color(str(look["hair"]))
+	eye_mat.albedo_color = Color(str(look["eyes"]))
+	pants_mat.albedo_color = Color(str(look["pants"]))
+	label.text = str(look["name"])
+	if look["hair_style"] != _style:
+		_style = str(look["hair_style"])
+		_build_hair(_style)
+	if look["accessory"] != _accessory:
+		_accessory = str(look["accessory"])
+		_build_accessory(_accessory)
+
+
+func _build_hair(style: String) -> void:
+	for child in _hair_root.get_children():
+		child.queue_free()
+	# Hepsinde ortak: üstte kâkül yapan kubbe, arkada başı saran küre.
+	var cap_mesh := SphereMesh.new()
+	cap_mesh.radius = 0.59
+	cap_mesh.height = 0.59
+	cap_mesh.is_hemisphere = true
+	cap_mesh.radial_segments = 32
+	cap_mesh.rings = 10
+	var cap := _mesh(_hair_root, cap_mesh, hair_mat, Vector3(0, 0.14, 0))
+	cap.scale = Vector3(1.0, 0.8, 1.0)
+	var back := _mesh(_hair_root, MapBuilder.sphere(0.58, 24, 12), hair_mat, Vector3(0, 0.02, -0.08))
+	back.scale = Vector3(1.0, 1.0, 0.9)
+	match style:
+		"kisa":
+			back.position = Vector3(0, 0.06, -0.06)
+			back.scale = Vector3(0.98, 0.92, 0.88)
+		"uzun":
+			var panel := _mesh(_hair_root, _capsule(0.32, 1.1), hair_mat, Vector3(0, -0.45, -0.25))
+			panel.scale = Vector3(1.5, 1.0, 0.6)
+		"atkuyrugu":
+			_mesh(_hair_root, MapBuilder.sphere(0.1, 10, 6), hair_mat, Vector3(0, 0.15, -0.6))
+			var tail := _mesh(_hair_root, _capsule(0.14, 0.7), hair_mat, Vector3(0, -0.2, -0.68))
+			tail.rotation.x = 0.3
+		"topuz":
+			_mesh(_hair_root, MapBuilder.sphere(0.24, 16, 10), hair_mat, Vector3(0, 0.62, -0.12))
+
+
+func _build_accessory(kind: String) -> void:
+	for child in _acc_root.get_children():
+		child.queue_free()
+	match kind:
+		"gozluk":
+			var frame := MapBuilder.mat(Color("1f2a44"), 0.3)
+			for side in [-1.0, 1.0]:
+				var ring := TorusMesh.new()
+				ring.inner_radius = 0.075
+				ring.outer_radius = 0.1
+				var r := _mesh(_acc_root, ring, frame, Vector3(0.19 * side, -0.02, 0.56))
+				r.rotation.x = PI / 2.0
+			_mesh(_acc_root, MapBuilder.box(Vector3(0.12, 0.025, 0.025)), frame, Vector3(0, 0.0, 0.59))
+		"sapka":
+			var red := MapBuilder.mat(Color("e35d5b"), 0.7)
+			var crown_mesh := SphereMesh.new()
+			crown_mesh.radius = 0.61
+			crown_mesh.height = 0.61
+			crown_mesh.is_hemisphere = true
+			crown_mesh.radial_segments = 32
+			crown_mesh.rings = 10
+			var crown := _mesh(_acc_root, crown_mesh, red, Vector3(0, 0.16, 0))
+			crown.scale = Vector3(1.0, 0.78, 1.0)
+			var brim := _mesh(_acc_root, MapBuilder.cyl(0.34, 0.34, 0.04, 24), red, Vector3(0, 0.18, 0.5))
+			brim.scale = Vector3(1.0, 1.0, 1.15)
+		"fiyonk":
+			var pink := MapBuilder.mat(Color("ff5fa2"), 0.6)
+			for side in [-1.0, 1.0]:
+				var lobe := _mesh(_acc_root, MapBuilder.sphere(0.12, 12, 8), pink, Vector3(0.34 + 0.11 * side, 0.5, 0.12))
+				lobe.scale = Vector3(1.0, 0.7, 0.5)
+			_mesh(_acc_root, MapBuilder.sphere(0.05, 8, 6), pink, Vector3(0.34, 0.5, 0.15))
 
 
 ## Yürüme ve zıplama hareketi. speed: metre/saniye.

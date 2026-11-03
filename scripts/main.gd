@@ -6,12 +6,17 @@ const PlayerScript = preload("res://scripts/player.gd")
 const NpcScript = preload("res://scripts/npc.gd")
 const CameraRigScript = preload("res://scripts/camera_rig.gd")
 const TouchControlsScript = preload("res://scripts/touch_controls.gd")
+const AvatarData = preload("res://scripts/avatar_data.gd")
+const AvatarEditorScript = preload("res://scripts/avatar_editor.gd")
 
 const ISLAND_RADIUS := 36.0
 const START_MAP := "res://data/maps/baslangic.json"
 
 var player  # oyuncu (player.gd)
 var rig  # kamera (camera_rig.gd)
+var touch  # dokunmatik kontroller (touch_controls.gd)
+var editor  # avatar ekranı (avatar_editor.gd)
+var avatar_button: Button
 
 
 func _ready() -> void:
@@ -26,14 +31,16 @@ func _ready() -> void:
 
 	player = PlayerScript.new()
 	player.name = "Oyuncu"
-	player.look = {"name": "Beren", "skin": "#f2c9a5", "hair": "#5a3825", "body": "#ff7aa8"}
+	var saved := AvatarData.load_saved()
+	var first_time := saved.is_empty()
+	player.look = AvatarData.defaults() if first_time else saved
 	add_child(player)
 	player.global_position = Vector3(0, 0.2, 2)
 
 	var friends: Array = [
-		{"name": "Ela", "skin": "#ffe0c4", "hair": "#e8c06a", "body": "#b48cff"},
-		{"name": "Deniz", "skin": "#a86f4c", "hair": "#2a1d18", "body": "#6ad08a"},
-		{"name": "Mira", "skin": "#d9a27a", "hair": "#d8483c", "body": "#ffc23d"},
+		{"name": "Ela", "skin": "#ffe0c4", "hair": "#e8c06a", "hair_style": "atkuyrugu", "body": "#b48cff", "accessory": "fiyonk"},
+		{"name": "Deniz", "skin": "#a86f4c", "hair": "#2a1d18", "hair_style": "kisa", "body": "#6ad08a", "pants": "#2a2a35", "accessory": "sapka"},
+		{"name": "Mira", "skin": "#d9a27a", "hair": "#d8483c", "hair_style": "topuz", "body": "#ffc23d", "eyes": "#3f8f5a", "accessory": "gozluk"},
 	]
 	for i in friends.size():
 		var npc = NpcScript.new()
@@ -51,10 +58,43 @@ func _ready() -> void:
 	var ui := CanvasLayer.new()
 	ui.name = "Arayuz"
 	add_child(ui)
-	ui.add_child(_make_title())
-	var touch = TouchControlsScript.new()
+	ui.add_child(_make_hud())
+	touch = TouchControlsScript.new()
 	touch.player = player
 	ui.add_child(touch)
+
+	editor = AvatarEditorScript.new()
+	editor.name = "AvatarEkrani"
+	ui.add_child(editor)
+	editor.hide()
+	editor.look_changed.connect(_on_look_changed)
+	editor.finished.connect(_on_avatar_done)
+	if first_time:
+		_open_avatar_editor.call_deferred()
+
+
+func _open_avatar_editor() -> void:
+	editor.open(player.look)
+	touch.hide()
+	avatar_button.hide()
+	player.input_enabled = false
+	player.face_yaw(rig.yaw)
+	rig.set_focus(true)
+
+
+func _on_look_changed(look: Dictionary) -> void:
+	player.avatar.apply_look(look)
+
+
+func _on_avatar_done(look: Dictionary) -> void:
+	AvatarData.save(look)
+	player.look = look
+	player.avatar.apply_look(look)
+	editor.hide()
+	touch.show()
+	avatar_button.show()
+	player.input_enabled = true
+	rig.set_focus(false)
 
 
 func _setup_input() -> void:
@@ -144,20 +184,39 @@ func _build_ground() -> void:
 	add_child(ground)
 
 
-func _make_title() -> Control:
+func _make_hud() -> Control:
+	var row := HBoxContainer.new()
+	row.position = Vector2(20, 18)
+	row.add_theme_constant_override("separation", 12)
+
 	var panel := PanelContainer.new()
-	panel.position = Vector2(20, 18)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color("fffaf0")
-	style.set_corner_radius_all(14)
-	style.content_margin_left = 16
-	style.content_margin_right = 16
-	style.content_margin_top = 6
-	style.content_margin_bottom = 6
-	panel.add_theme_stylebox_override("panel", style)
+	panel.add_theme_stylebox_override("panel", _chip_style(Color("fffaf0")))
 	var label := Label.new()
 	label.text = "Berenin Adası"
 	label.add_theme_color_override("font_color", Color("1f2a44"))
 	label.add_theme_font_size_override("font_size", 26)
 	panel.add_child(label)
-	return panel
+	row.add_child(panel)
+
+	avatar_button = Button.new()
+	avatar_button.text = "Avatarım"
+	avatar_button.focus_mode = Control.FOCUS_NONE
+	avatar_button.add_theme_font_size_override("font_size", 22)
+	for state in ["normal", "hover", "pressed", "hover_pressed"]:
+		avatar_button.add_theme_stylebox_override(state, _chip_style(Color("ffc23d")))
+	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
+		avatar_button.add_theme_color_override(state, Color("1f2a44"))
+	avatar_button.pressed.connect(_open_avatar_editor)
+	row.add_child(avatar_button)
+	return row
+
+
+func _chip_style(bg: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = bg
+	style.set_corner_radius_all(14)
+	style.content_margin_left = 16
+	style.content_margin_right = 16
+	style.content_margin_top = 6
+	style.content_margin_bottom = 6
+	return style

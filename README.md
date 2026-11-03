@@ -5,7 +5,16 @@ Beren ve arkadaşlarının birlikte oynayacağı, haritasını ve avatarını ç
 - Ürün planı: https://claude.ai/artifact/MdZZj8uL1YwtcFfgAgTY5N
 - İlk web prototipi: `prototype/web/berenin-adasi.html` (tarayıcıda açılır)
 
-## Şu an oyunda neler var (aşama 1)
+## Şu an oyunda neler var
+
+**Aşama 2: avatar**
+
+- Oyun ilk açıldığında avatar ekranı gelir; sonra sol üstteki **Avatarım** düğmesiyle tekrar açılır
+- Seçenekler: ad, ten rengi, saç modeli (kısa, uzun, at kuyruğu, topuz), saç rengi, göz rengi, tişört, pantolon, aksesuar (gözlük, şapka, fiyonk)
+- Karakter seçtikçe canlı değişir; avatar tablette `user://avatar.json` olarak saklanır
+- Avatar sadece bu ayarlardan oluşur, fotoğraf içermez (`scripts/avatar_data.gd`)
+
+**Aşama 1: temel oyun**
 
 - Ada: çimen, kum, deniz, gökyüzü, güneş ışığı ve gölgeler
 - Haritadan yüklenen evler, ağaçlar, çiçekler, banklar, lambalar, havuz (`data/maps/baslangic.json`)
