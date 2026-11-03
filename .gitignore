@@ -1,0 +1,13 @@
+# Godot
+.godot/
+export_credentials.cfg
+
+# Derleme çıktıları
+build/
+*.apk
+*.aab
+*.keystore
+
+# Sistem
+.DS_Store
+Thumbs.db
