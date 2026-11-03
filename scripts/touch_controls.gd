@@ -15,7 +15,8 @@ var _jump_index := -1
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fit_screen()
+	get_viewport().size_changed.connect(_fit_screen)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
@@ -89,3 +90,10 @@ func _draw() -> void:
 	var font_size := 26
 	var text_size := font.get_string_size(text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size)
 	draw_string(font, j + Vector2(-text_size.x / 2.0, font_size * 0.35), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color("1f2a44"))
+
+
+## Ekranın tamamını kaplar. CanvasLayer altındaki Control'lerde çapalar boyut vermediği için
+## boyutu ekrandan alır ve ekran döndüğünde/değiştiğinde günceller.
+func _fit_screen() -> void:
+	position = Vector2.ZERO
+	size = get_viewport_rect().size

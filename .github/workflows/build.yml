@@ -14,6 +14,9 @@ env:
   GODOT_VERSION: "4.6.3"
   GODOT_MINOR: "4.6"
 
+permissions:
+  contents: write
+
 jobs:
   android:
     runs-on: ubuntu-latest
@@ -76,6 +79,27 @@ jobs:
           mkdir -p build
           ./godot --headless --path . --export-debug "Android" build/berenin-adasi.apk 2>&1 | tee export.log
           test -s build/berenin-adasi.apk
+
+      - name: Ekran görüntüleri al (karakterleri görmek için)
+        continue-on-error: true
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mesa-vulkan-drivers xvfb > /dev/null
+          mkdir -p shots
+          xvfb-run -a -s "-screen 0 1280x720x24" ./godot --path . --resolution 1280x720 --script res://tests/screenshot.gd -- "$PWD/shots" 2>&1 | tail -20
+
+      - name: Ekran görüntülerini "ekran" dalına koy
+        continue-on-error: true
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          cd shots
+          git init -q -b ekran
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -qm "Ekran görüntüleri: $BRANCH @ ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" "ekran:refs/heads/ekran/${BRANCH//\//-}"
 
       - uses: actions/upload-artifact@v4
         with:

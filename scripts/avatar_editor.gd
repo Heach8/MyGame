@@ -32,7 +32,8 @@ var _photo_status: Label
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fit_screen()
+	get_viewport().size_changed.connect(_fit_screen)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var panel := PanelContainer.new()
@@ -217,3 +218,10 @@ func _label(text: String, font_px: int, quiet: bool = false) -> Label:
 	l.add_theme_font_size_override("font_size", font_px)
 	l.add_theme_color_override("font_color", Color("66708a") if quiet else INK)
 	return l
+
+
+## Ekranın tamamını kaplar. CanvasLayer altındaki Control'lerde çapalar boyut vermediği için
+## boyutu ekrandan alır ve ekran döndüğünde/değiştiğinde günceller.
+func _fit_screen() -> void:
+	position = Vector2.ZERO
+	size = get_viewport_rect().size
