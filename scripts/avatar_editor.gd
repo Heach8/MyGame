@@ -25,7 +25,11 @@ const SECTIONS := [
 var look: Dictionary = {}
 var _buttons: Array = []  # [anahtar, değer, Button]
 var _name_edit: LineEdit
-var _custom: Dictionary = {}  # anahtar -> paletten renk seçen ColorPickerButton
+var _custom: Dictionary = {}  # anahtar -> "+" palet düğmesi
+var _palette: PopupPanel
+var _palette_title: Label
+var _picker: ColorPicker
+var _palette_key := ""
 
 
 func _ready() -> void:
@@ -120,27 +124,59 @@ func _add_section(parent: Control, key: String, title: String) -> void:
 
 
 ## Hazır renklerin yanındaki "+" düğmesi: dokununca renk çemberi açılır, her renk seçilebilir.
-func _make_palette_button(key: String) -> ColorPickerButton:
-	var cb := ColorPickerButton.new()
-	cb.text = "+"
-	cb.focus_mode = Control.FOCUS_NONE
-	cb.custom_minimum_size = Vector2(52, 52)
-	cb.edit_alpha = false
-	cb.add_theme_font_size_override("font_size", 28)
-	var picker := cb.get_picker()
-	picker.picker_shape = ColorPicker.SHAPE_HSV_WHEEL
-	picker.sliders_visible = false
-	picker.presets_visible = false
-	picker.sampler_visible = false
-	picker.color_modes_visible = false
-	picker.hex_visible = false
-	picker.can_add_swatches = false
-	picker.add_theme_constant_override("sv_width", 300)
-	picker.add_theme_constant_override("sv_height", 300)
-	picker.add_theme_constant_override("h_width", 44)
-	cb.color_changed.connect(_on_palette_color.bind(key))
-	_custom[key] = cb
-	return cb
+func _make_palette_button(key: String) -> Button:
+	var b := Button.new()
+	b.text = "+"
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(52, 52)
+	b.add_theme_font_size_override("font_size", 30)
+	b.pressed.connect(_open_palette.bind(key))
+	_custom[key] = b
+	return b
+
+
+func _open_palette(key: String) -> void:
+	if _palette == null:
+		_palette = PopupPanel.new()
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = PAPER
+		sb.set_corner_radius_all(22)
+		sb.set_content_margin_all(18)
+		_palette.add_theme_stylebox_override("panel", sb)
+		var col := VBoxContainer.new()
+		col.add_theme_constant_override("separation", 12)
+		_palette.add_child(col)
+		_palette_title = _label("", 22)
+		col.add_child(_palette_title)
+		_picker = ColorPicker.new()
+		_picker.edit_alpha = false
+		_picker.picker_shape = ColorPicker.SHAPE_HSV_WHEEL
+		_picker.sliders_visible = false
+		_picker.presets_visible = false
+		_picker.sampler_visible = false
+		_picker.color_modes_visible = false
+		_picker.hex_visible = false
+		_picker.can_add_swatches = false
+		_picker.add_theme_constant_override("sv_width", 300)
+		_picker.add_theme_constant_override("sv_height", 300)
+		_picker.add_theme_constant_override("h_width", 44)
+		_picker.color_changed.connect(func(c: Color): _on_palette_color(c, _palette_key))
+		col.add_child(_picker)
+		var ok := Button.new()
+		ok.text = "Tamam"
+		ok.focus_mode = Control.FOCUS_NONE
+		ok.custom_minimum_size = Vector2(0, 56)
+		ok.add_theme_font_size_override("font_size", 24)
+		_style_button(ok, SUN, false, 16)
+		ok.pressed.connect(func(): _palette.hide())
+		col.add_child(ok)
+		add_child(_palette)
+	_palette_key = key
+	for section in SECTIONS:
+		if section[0] == key:
+			_palette_title.text = str(section[1]) + ": istediğin rengi seç"
+	_picker.color = Color(str(look.get(key, "#ffffff")))
+	_palette.popup_centered()
 
 
 func _on_palette_color(color: Color, key: String) -> void:
@@ -166,12 +202,13 @@ func _on_done() -> void:
 
 func _refresh() -> void:
 	for key in _custom:
-		var cb: ColorPickerButton = _custom[key]
+		var cb: Button = _custom[key]
 		var value := str(look.get(key, ""))
 		var is_custom: bool = not AvatarData.OPTIONS[key].has(value)
-		if is_custom:
-			cb.color = Color(value)
 		_style_button(cb, Color(value) if is_custom else Color.WHITE, is_custom, 26)
+		var light := Color(value).get_luminance() > 0.5 if is_custom else true
+		for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
+			cb.add_theme_color_override(state, INK if light else Color.WHITE)
 	for entry in _buttons:
 		var key := str(entry[0])
 		var value := str(entry[1])

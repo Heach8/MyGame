@@ -19,7 +19,12 @@ func _initialize() -> void:
 
 func _process(_delta: float) -> bool:
 	_frame += 1
-	if _frame == 120:
+	if _frame == 100:
+		_main.editor._open_palette("body")
+	elif _frame == 110:
+		_save("0_palet.png")
+		_main.editor._palette.hide()
+	elif _frame == 120:
 		_save("1_avatar_ekrani.png")
 	elif _frame == 125:
 		_main.editor._on_done()

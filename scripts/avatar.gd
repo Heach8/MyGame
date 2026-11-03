@@ -154,19 +154,15 @@ func _build_face() -> void:
 		[-0.1, 0.198], [-0.05, 0.208], [0.0, 0.213], [0.05, 0.215], [0.1, 0.208], [0.14, 0.195],
 		[0.18, 0.174], [0.215, 0.145], [0.24, 0.11], [0.258, 0.07], [0.268, 0.035], [0.27, 0.0]], 36), skin_mat, Vector3.ZERO)
 	skull.scale = Vector3(1.0, 1.0, 1.06)
-	# Belirgin çene ucu
-	var chin := _mesh(head, MapBuilder.sphere(0.045, 14, 8), skin_mat, Vector3(0, -0.232, 0.15))
-	chin.scale = Vector3(1.25, 0.8, 0.85)
 	var blush := _soft_mat(Color(0.93, 0.55, 0.55, 0.28), 0.8, 0.0)
 	blush.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	for side in [-1.0, 1.0]:
 		var ear := _mesh(head, MapBuilder.sphere(0.045, 10, 8), skin_mat, Vector3(0.205 * side, -0.02, 0.01))
 		ear.scale = Vector3(0.45, 1.0, 0.75)
-		# Elmacık kemiği ve hafif yanak pembeliği
-		var cheekbone := _mesh(head, MapBuilder.sphere(0.055, 14, 8), skin_mat, Vector3(0.112 * side, -0.05, 0.152))
-		cheekbone.scale = Vector3(1.25, 0.7, 0.75)
-		var rosy := _mesh(head, MapBuilder.sphere(0.04, 12, 8), blush, Vector3(0.118 * side, -0.065, 0.178))
-		rosy.scale = Vector3(1.3, 0.75, 0.5)
+		# Hafif yanak pembeliği
+		var rosy := _mesh(head, MapBuilder.sphere(0.036, 12, 8), blush, Vector3(0.112 * side, -0.068, 0.168))
+		rosy.scale = Vector3(1.3, 0.7, 0.3)
+		rosy.rotation.y = 0.55 * side
 		# Kaş kemeri: gözün üstüne hafif gölge düşürür
 		var ridge := _mesh(head, _capsule_x(0.02, 0.085), skin_mat, Vector3(0.078 * side, 0.052, 0.19))
 		ridge.rotation.z = PI / 2.0 - 0.1 * side
@@ -213,10 +209,10 @@ func _build_face() -> void:
 	var nostril_mat := _soft_mat(Color(0.35, 0.2, 0.18, 0.55), 0.9, 0.0)
 	nostril_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	for side in [-1.0, 1.0]:
-		var wing := _mesh(head, MapBuilder.sphere(0.014, 10, 6), skin_mat, Vector3(0.02 * side, -0.06, 0.214))
-		wing.scale = Vector3(1.0, 0.85, 0.9)
-		var hole := _mesh(head, MapBuilder.sphere(0.006, 8, 4), nostril_mat, Vector3(0.011 * side, -0.07, 0.225))
-		hole.scale = Vector3(1.2, 0.6, 1.0)
+		var wing := _mesh(head, MapBuilder.sphere(0.0105, 10, 6), skin_mat, Vector3(0.017 * side, -0.059, 0.214))
+		wing.scale = Vector3(1.0, 0.8, 0.8)
+		var hole := _mesh(head, MapBuilder.sphere(0.0045, 8, 4), nostril_mat, Vector3(0.009 * side, -0.068, 0.224))
+		hole.scale = Vector3(1.2, 0.5, 1.0)
 
 	# Dudaklar
 	var lip_mat := _soft_mat(Color("b95c5e"), 0.4, 0.0)
@@ -228,7 +224,7 @@ func _build_face() -> void:
 	var lower := _mesh(head, _capsule_x(0.0115, 0.044), lip_mat, Vector3(0, -0.133, 0.196))
 	lower.scale = Vector3(1.0, 1.0, 0.7)
 	lower.rotation.z = PI / 2.0
-	var line := _mesh(head, _capsule_x(0.0035, 0.062), lash_mat, Vector3(0, -0.124, 0.204))
+	var line := _mesh(head, _capsule_x(0.0022, 0.05), MapBuilder.mat(Color("7a3f40"), 0.6), Vector3(0, -0.125, 0.204))
 	line.rotation.z = PI / 2.0
 
 
