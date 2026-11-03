@@ -74,14 +74,15 @@ func setup(look: Dictionary) -> void:
 		var knee := Node3D.new()
 		knee.position.y = -THIGH
 		leg.add_child(knee)
+		_mesh(knee, MapBuilder.sphere(0.071, 14, 8), pants_mat, Vector3.ZERO)
 		_mesh(knee, _lathe([[0.02, 0.07], [-0.12, 0.072], [-0.3, 0.06], [-SHIN + 0.04, 0.05], [-SHIN, 0.05]], 16), pants_mat, Vector3.ZERO)
 		var foot := Node3D.new()
 		foot.position = Vector3(0, -SHIN - 0.07, 0.05)
 		knee.add_child(foot)
 		var shoe := _mesh(foot, MapBuilder.sphere(0.085, 16, 10), shoe_mat, Vector3(0, 0.0, 0.0))
 		shoe.scale = Vector3(0.95, 0.75, 1.75)
-		var sole := _mesh(foot, MapBuilder.box(Vector3(0.16, 0.035, 0.31)), sole_mat, Vector3(0, -0.055, 0.0))
-		sole.position.y = -0.06
+		var sole := _mesh(foot, MapBuilder.sphere(0.085, 14, 6), sole_mat, Vector3(0, -0.045, 0.0))
+		sole.scale = Vector3(0.98, 0.22, 1.78)
 		legs.append([leg, knee])
 	leg_l = legs[0][0]
 	knee_l = legs[0][1]
