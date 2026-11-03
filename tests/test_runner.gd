@@ -1,11 +1,10 @@
 extends SceneTree
-## Hızlı testler: avatar verisi ve fotoğraftan renk seçme.
+## Hızlı testler: avatar verisi ve serbest renk seçimi.
 ## Çalıştırma: godot --headless --path . --script res://tests/test_runner.gd
 
 const AvatarData = preload("res://scripts/avatar_data.gd")
-const PhotoPickerScript = preload("res://scripts/photo_picker.gd")
 
-const EXPECTED_CHECKS := 17
+const EXPECTED_CHECKS := 13
 
 var failures := 0
 var checks := 0
@@ -19,8 +18,7 @@ func _process(_delta: float) -> bool:
 	_done = true
 	_test_names()
 	_test_sanitize()
-	_test_nearest()
-	_test_photo_sampling()
+	_test_colors()
 	# Bir test betik hatasıyla yarıda kalırsa kontrol sayısı eksik kalır; bunu da hata sayarız.
 	if checks != EXPECTED_CHECKS:
 		failures += 1
@@ -47,41 +45,18 @@ func _test_names() -> void:
 
 
 func _test_sanitize() -> void:
-	var s := AvatarData.sanitize({"skin": "#000000", "hair_style": "topuz", "name": "Ela"})
-	_check(s["skin"] == AvatarData.defaults()["skin"], "ayar: listede olmayan renk varsayılana döner")
+	var s := AvatarData.sanitize({"skin": "#00000g", "hair_style": "topuz", "name": "Ela"})
+	_check(s["skin"] == AvatarData.defaults()["skin"], "ayar: geçersiz renk varsayılana döner")
 	_check(s["hair_style"] == "topuz", "ayar: geçerli saç modeli korunur")
 	_check(s["name"] == "Ela", "ayar: ad korunur")
 	_check(not s.has("photo"), "ayar: fotoğraf alanı yok")
 
 
-func _test_nearest() -> void:
-	_check(AvatarData.nearest("skin", Color("f0c8a0")) == "#f2c9a5", "renk: açık ten")
-	_check(AvatarData.nearest("skin", Color("704530")) == "#6f4430", "renk: koyu ten")
-	_check(AvatarData.nearest("hair", Color("e0b860")) == "#e8c06a", "renk: sarı saç")
-	_check(AvatarData.nearest("hair", Color("1e1612")) == "#2a1d18", "renk: siyah saç")
-	_check(AvatarData.nearest("eyes", Color("4070c0")) == "#3f73c4", "renk: mavi göz")
-
-
-func _test_photo_sampling() -> void:
-	var picker = PhotoPickerScript.new()
-	root.add_child(picker)
-	var img := Image.create_empty(200, 100, false, Image.FORMAT_RGB8)
-	img.fill(Color("a86f4c"))
-	picker.start(img)
-	picker._photo.size = Vector2(400, 400)
-	# 200x100 fotoğraf 400x400 alana 400x200 olarak, dikeyde 100 piksel boşlukla ortalanır.
-	_check(picker._to_image(Vector2(200, 200)) == Vector2i(100, 50), "dokunuş: ekran noktası fotoğraf pikseline çevrilir")
-	_check(picker._to_image(Vector2(200, 20)) == Vector2i(-1, -1), "dokunuş: fotoğraf dışı yok sayılır")
-
-	var got: Array = []
-	picker.sampled.connect(func(k, v): got.append([k, v]))
-	var ev := InputEventMouseButton.new()
-	ev.pressed = true
-	ev.button_index = MOUSE_BUTTON_LEFT
-	ev.position = Vector2(200, 200)
-	picker._on_photo_input(ev)
-	_check(got.size() == 1 and got[0][0] == "skin" and got[0][1] == "#a86f4c", "fotoğraf: yanak rengi tene uygulanır")
-
-	picker._finish()
-	_check(picker._image == null and picker._photo.texture == null, "fotoğraf: bitince hafızadan silinir")
-	picker.queue_free()
+func _test_colors() -> void:
+	var s := AvatarData.sanitize({"skin": "#3A2B1C", "hair": "#12345", "body": "kirmizi", "eyes": "#00ff00"})
+	_check(s["skin"] == "#3a2b1c", "renk: paletten seçilen ten rengi korunur")
+	_check(s["eyes"] == "#00ff00", "renk: paletten seçilen göz rengi korunur")
+	_check(s["hair"] == AvatarData.defaults()["hair"], "renk: bozuk renk kodu varsayılana döner")
+	_check(s["body"] == AvatarData.defaults()["body"], "renk: renk olmayan yazı varsayılana döner")
+	var t := AvatarData.sanitize({"accessory": "#ffffff", "hair_style": "#000000"})
+	_check(t["accessory"] == "yok" and t["hair_style"] == AvatarData.defaults()["hair_style"], "renk: renk olmayan alanlara renk yazılamaz")

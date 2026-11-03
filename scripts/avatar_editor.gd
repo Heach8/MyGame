@@ -6,13 +6,12 @@ signal look_changed(look: Dictionary)
 signal finished(look: Dictionary)
 
 const AvatarData = preload("res://scripts/avatar_data.gd")
-const PhotoPickerScript = preload("res://scripts/photo_picker.gd")
 
 const INK := Color("1f2a44")
 const PAPER := Color("fffaf0")
 const SUN := Color("ffc23d")
 const SOFT := Color("f1e8d6")
-const COLOR_KEYS := ["skin", "hair", "eyes", "body", "pants"]
+const COLOR_KEYS := AvatarData.COLOR_KEYS
 const SECTIONS := [
 	["skin", "Ten rengi"],
 	["hair_style", "Saç modeli"],
@@ -26,9 +25,11 @@ const SECTIONS := [
 var look: Dictionary = {}
 var _buttons: Array = []  # [anahtar, değer, Button]
 var _name_edit: LineEdit
-var _dialog: FileDialog
-var _picker  # photo_picker.gd
-var _photo_status: Label
+var _custom: Dictionary = {}  # anahtar -> "+" palet düğmesi
+var _palette: PopupPanel
+var _palette_title: Label
+var _picker: ColorPicker
+var _palette_key := ""
 
 
 func _ready() -> void:
@@ -83,19 +84,6 @@ func _ready() -> void:
 	for section in SECTIONS:
 		_add_section(list, str(section[0]), str(section[1]))
 
-	var photo := Button.new()
-	photo.text = "Fotoğrafımdan yap"
-	photo.focus_mode = Control.FOCUS_NONE
-	photo.custom_minimum_size = Vector2(0, 54)
-	photo.add_theme_font_size_override("font_size", 22)
-	_style_button(photo, SOFT, false, 16)
-	photo.pressed.connect(_open_photo)
-	box.add_child(photo)
-
-	_photo_status = _label("Fotoğraf tabletten çıkmaz, bitince silinir.", 15, true)
-	_photo_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	box.add_child(_photo_status)
-
 	var done := Button.new()
 	done.text = "Hazır!"
 	done.custom_minimum_size = Vector2(0, 60)
@@ -103,36 +91,6 @@ func _ready() -> void:
 	_style_button(done, SUN, false, 16)
 	done.pressed.connect(_on_done)
 	box.add_child(done)
-
-
-func _open_photo() -> void:
-	if _dialog == null:
-		_dialog = FileDialog.new()
-		_dialog.use_native_dialog = true
-		_dialog.access = FileDialog.ACCESS_FILESYSTEM
-		_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
-		_dialog.title = "Fotoğraf seç"
-		_dialog.add_filter("*.jpg, *.jpeg, *.png, *.webp", "Fotoğraflar", "image/*")
-		_dialog.file_selected.connect(_on_photo_selected)
-		add_child(_dialog)
-	_dialog.popup_centered_ratio(0.8)
-
-
-func _on_photo_selected(path: String) -> void:
-	var img := AvatarData.load_photo(path)
-	if img == null:
-		_photo_status.text = "Bu fotoğraf açılamadı. Başka bir fotoğraf dene."
-		return
-	if _picker == null:
-		_picker = PhotoPickerScript.new()
-		add_child(_picker)
-		_picker.sampled.connect(_on_pick)
-		_picker.closed.connect(_on_photo_closed)
-	_picker.start(img)
-
-
-func _on_photo_closed() -> void:
-	_photo_status.text = "Renkler fotoğraftan seçildi ve fotoğraf silindi. İstersen değiştirebilirsin."
 
 
 func open(current: Dictionary) -> void:
@@ -161,6 +119,68 @@ func _add_section(parent: Control, key: String, title: String) -> void:
 		b.pressed.connect(_on_pick.bind(key, str(value)))
 		flow.add_child(b)
 		_buttons.append([key, str(value), b])
+	if COLOR_KEYS.has(key):
+		flow.add_child(_make_palette_button(key))
+
+
+## Hazır renklerin yanındaki "+" düğmesi: dokununca renk çemberi açılır, her renk seçilebilir.
+func _make_palette_button(key: String) -> Button:
+	var b := Button.new()
+	b.text = "+"
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(52, 52)
+	b.add_theme_font_size_override("font_size", 30)
+	b.pressed.connect(_open_palette.bind(key))
+	_custom[key] = b
+	return b
+
+
+func _open_palette(key: String) -> void:
+	if _palette == null:
+		_palette = PopupPanel.new()
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = PAPER
+		sb.set_corner_radius_all(22)
+		sb.set_content_margin_all(18)
+		_palette.add_theme_stylebox_override("panel", sb)
+		var col := VBoxContainer.new()
+		col.add_theme_constant_override("separation", 12)
+		_palette.add_child(col)
+		_palette_title = _label("", 22)
+		col.add_child(_palette_title)
+		_picker = ColorPicker.new()
+		_picker.edit_alpha = false
+		_picker.picker_shape = ColorPicker.SHAPE_HSV_WHEEL
+		_picker.sliders_visible = false
+		_picker.presets_visible = false
+		_picker.sampler_visible = false
+		_picker.color_modes_visible = false
+		_picker.hex_visible = false
+		_picker.can_add_swatches = false
+		_picker.add_theme_constant_override("sv_width", 300)
+		_picker.add_theme_constant_override("sv_height", 300)
+		_picker.add_theme_constant_override("h_width", 44)
+		_picker.color_changed.connect(func(c: Color): _on_palette_color(c, _palette_key))
+		col.add_child(_picker)
+		var ok := Button.new()
+		ok.text = "Tamam"
+		ok.focus_mode = Control.FOCUS_NONE
+		ok.custom_minimum_size = Vector2(0, 56)
+		ok.add_theme_font_size_override("font_size", 24)
+		_style_button(ok, SUN, false, 16)
+		ok.pressed.connect(func(): _palette.hide())
+		col.add_child(ok)
+		add_child(_palette)
+	_palette_key = key
+	for section in SECTIONS:
+		if section[0] == key:
+			_palette_title.text = str(section[1]) + ": istediğin rengi seç"
+	_picker.color = Color(str(look.get(key, "#ffffff")))
+	_palette.popup_centered()
+
+
+func _on_palette_color(color: Color, key: String) -> void:
+	_on_pick(key, "#" + color.to_html(false))
 
 
 func _on_pick(key: String, value: String) -> void:
@@ -181,6 +201,14 @@ func _on_done() -> void:
 
 
 func _refresh() -> void:
+	for key in _custom:
+		var cb: Button = _custom[key]
+		var value := str(look.get(key, ""))
+		var is_custom: bool = not AvatarData.OPTIONS[key].has(value)
+		_style_button(cb, Color(value) if is_custom else Color.WHITE, is_custom, 26)
+		var light := Color(value).get_luminance() > 0.5 if is_custom else true
+		for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
+			cb.add_theme_color_override(state, INK if light else Color.WHITE)
 	for entry in _buttons:
 		var key := str(entry[0])
 		var value := str(entry[1])

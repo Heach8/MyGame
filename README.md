@@ -13,10 +13,10 @@ Ekran görüntüleri her derlemede otomatik alınır: GitHub'da `ekran/main` dal
 
 - Yarı gerçekçi karakterler: insan oranları, dizden ve dirsekten bükülen kollar ve bacaklar, eller, burun, kaş, göz bebeği ve dudaklı yüz; doğal yürüyüş, göz kırpma, nefes alma ve etrafa bakınma (`scripts/avatar.gd`, hepsi kodla üretilir)
 - Oyun ilk açıldığında avatar ekranı gelir; sonra sol üstteki **Avatarım** düğmesiyle tekrar açılır
+- Renklerde hazır seçeneklerin yanındaki **+** düğmesi renk çemberini açar; ten, saç, göz, tişört ve pantolon için her renk seçilebilir
 - Seçenekler: ad, ten rengi, saç modeli (kısa, uzun, at kuyruğu, topuz), saç rengi, göz rengi, tişört, pantolon, aksesuar (gözlük, şapka, fiyonk)
 - Karakter seçtikçe canlı değişir; avatar tablette `user://avatar.json` olarak saklanır
 - Avatar sadece bu ayarlardan oluşur, fotoğraf içermez (`scripts/avatar_data.gd`)
-- **Fotoğrafımdan yap:** galeriden fotoğraf seçilir; çocuk sırayla yanağına, saçına ve gözüne dokunur, o noktaların rengine en yakın ten, saç ve göz rengi seçilir. Fotoğraf yalnızca hafızada tutulur, kaydedilmez, gönderilmez ve bitince silinir (`scripts/photo_picker.gd`)
 
 **Aşama 1: temel oyun**
 

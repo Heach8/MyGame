@@ -15,6 +15,9 @@ const OPTIONS := {
 	"accessory": ["yok", "gozluk", "sapka", "fiyonk"],
 }
 
+## Bu alanlarda listedeki renklerin yanında paletten seçilen her renk de geçerlidir.
+const COLOR_KEYS := ["skin", "hair", "eyes", "body", "pants"]
+
 const LABELS := {
 	"kisa": "Kısa",
 	"uzun": "Uzun",
@@ -62,8 +65,8 @@ static func save(look: Dictionary) -> void:
 static func sanitize(raw: Dictionary) -> Dictionary:
 	var out := defaults()
 	for key in OPTIONS:
-		var value := str(raw.get(key, ""))
-		if OPTIONS[key].has(value):
+		var value := str(raw.get(key, "")).to_lower()
+		if OPTIONS[key].has(value) or (COLOR_KEYS.has(key) and is_hex_color(value)):
 			out[key] = value
 	out["name"] = clean_name(str(raw.get("name", "")))
 	return out
@@ -85,45 +88,11 @@ static func clean_name(text: String) -> String:
 	return out if not out.is_empty() else "Oyuncu"
 
 
-## Fotoğraftan alınan renge en yakın seçeneği bulur (insan gözüne yakın "redmean" uzaklığı).
-static func nearest(key: String, c: Color) -> String:
-	var best := ""
-	var best_d := INF
-	for v in OPTIONS[key]:
-		var o := Color(str(v))
-		var rm := (c.r + o.r) * 0.5
-		var dr := c.r - o.r
-		var dg := c.g - o.g
-		var db := c.b - o.b
-		var d := (2.0 + rm) * dr * dr + 4.0 * dg * dg + (3.0 - rm) * db * db
-		if d < best_d:
-			best_d = d
-			best = str(v)
-	return best
-
-
-## Seçilen fotoğrafı yalnızca hafızaya okur; dosya kopyalanmaz, hiçbir yere gönderilmez.
-static func load_photo(path: String) -> Image:
-	var bytes := FileAccess.get_file_as_bytes(path)
-	if bytes.is_empty():
-		return null
-	var img := Image.new()
-	var lower := path.to_lower()
-	var err := ERR_FILE_UNRECOGNIZED
-	if lower.ends_with(".png"):
-		err = img.load_png_from_buffer(bytes)
-	elif lower.ends_with(".webp"):
-		err = img.load_webp_from_buffer(bytes)
-	else:
-		err = img.load_jpg_from_buffer(bytes)
-		if err != OK:
-			err = img.load_png_from_buffer(bytes)
-		if err != OK:
-			err = img.load_webp_from_buffer(bytes)
-	if err != OK or img.is_empty():
-		return null
-	var m := maxi(img.get_width(), img.get_height())
-	if m > 1024:
-		var k := 1024.0 / m
-		img.resize(int(img.get_width() * k), int(img.get_height() * k))
-	return img
+## "#rrggbb" biçiminde geçerli bir renk mi?
+static func is_hex_color(value: String) -> bool:
+	if value.length() != 7 or not value.begins_with("#"):
+		return false
+	for i in range(1, 7):
+		if not "0123456789abcdef".contains(value[i]):
+			return false
+	return true
