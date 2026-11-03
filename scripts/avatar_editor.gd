@@ -6,6 +6,7 @@ signal look_changed(look: Dictionary)
 signal finished(look: Dictionary)
 
 const AvatarData = preload("res://scripts/avatar_data.gd")
+const PhotoPickerScript = preload("res://scripts/photo_picker.gd")
 
 const INK := Color("1f2a44")
 const PAPER := Color("fffaf0")
@@ -25,6 +26,9 @@ const SECTIONS := [
 var look: Dictionary = {}
 var _buttons: Array = []  # [anahtar, değer, Button]
 var _name_edit: LineEdit
+var _dialog: FileDialog
+var _picker  # photo_picker.gd
+var _photo_status: Label
 
 
 func _ready() -> void:
@@ -78,9 +82,18 @@ func _ready() -> void:
 	for section in SECTIONS:
 		_add_section(list, str(section[0]), str(section[1]))
 
-	var note := _label("Fotoğraftan avatar yapma yakında geliyor. Fotoğraf tabletten hiç çıkmayacak.", 15, true)
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	box.add_child(note)
+	var photo := Button.new()
+	photo.text = "Fotoğrafımdan yap"
+	photo.focus_mode = Control.FOCUS_NONE
+	photo.custom_minimum_size = Vector2(0, 54)
+	photo.add_theme_font_size_override("font_size", 22)
+	_style_button(photo, SOFT, false, 16)
+	photo.pressed.connect(_open_photo)
+	box.add_child(photo)
+
+	_photo_status = _label("Fotoğraf tabletten çıkmaz, bitince silinir.", 15, true)
+	_photo_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(_photo_status)
 
 	var done := Button.new()
 	done.text = "Hazır!"
@@ -89,6 +102,36 @@ func _ready() -> void:
 	_style_button(done, SUN, false, 16)
 	done.pressed.connect(_on_done)
 	box.add_child(done)
+
+
+func _open_photo() -> void:
+	if _dialog == null:
+		_dialog = FileDialog.new()
+		_dialog.use_native_dialog = true
+		_dialog.access = FileDialog.ACCESS_FILESYSTEM
+		_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+		_dialog.title = "Fotoğraf seç"
+		_dialog.add_filter("*.jpg, *.jpeg, *.png, *.webp", "Fotoğraflar", "image/*")
+		_dialog.file_selected.connect(_on_photo_selected)
+		add_child(_dialog)
+	_dialog.popup_centered_ratio(0.8)
+
+
+func _on_photo_selected(path: String) -> void:
+	var img := AvatarData.load_photo(path)
+	if img == null:
+		_photo_status.text = "Bu fotoğraf açılamadı. Başka bir fotoğraf dene."
+		return
+	if _picker == null:
+		_picker = PhotoPickerScript.new()
+		add_child(_picker)
+		_picker.sampled.connect(_on_pick)
+		_picker.closed.connect(_on_photo_closed)
+	_picker.start(img)
+
+
+func _on_photo_closed() -> void:
+	_photo_status.text = "Renkler fotoğraftan seçildi ve fotoğraf silindi. İstersen değiştirebilirsin."
 
 
 func open(current: Dictionary) -> void:
