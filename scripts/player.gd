@@ -14,6 +14,7 @@ var look: Dictionary = {}
 var camera_rig  # camera_rig.gd; yaw değerini okuruz
 var joystick_vector := Vector2.ZERO  # dokunmatik joystick, -1..1 (y aşağı = geri)
 var jump_requested := false
+var input_enabled := true  # avatar ekranı açıkken kapalı
 
 var avatar
 var _facing := PI
@@ -38,6 +39,9 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	var input := Input.get_vector("sol", "sag", "ileri", "geri") + joystick_vector
 	input = input.limit_length(1.0)
+	if not input_enabled:
+		input = Vector2.ZERO
+		jump_requested = false
 
 	var yaw := 0.0
 	if camera_rig != null:
@@ -58,7 +62,7 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0.0, 40.0 * delta)
 
 	if is_on_floor():
-		if jump_requested or Input.is_action_just_pressed("zipla"):
+		if input_enabled and (jump_requested or Input.is_action_just_pressed("zipla")):
 			velocity.y = JUMP_SPEED
 	else:
 		velocity.y -= GRAVITY * delta
@@ -77,3 +81,10 @@ func _physics_process(delta: float) -> void:
 
 	avatar.rotation.y = _facing
 	avatar.animate(Vector2(velocity.x, velocity.z).length(), delta, not is_on_floor())
+
+
+## Karakteri verilen yöne çevirir (kameranın yaw değeri verilirse kameraya bakar).
+func face_yaw(yaw: float) -> void:
+	_facing = yaw
+	if avatar != null:
+		avatar.rotation.y = _facing
