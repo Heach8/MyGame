@@ -29,6 +29,7 @@ Beren ve arkadaşlarının birlikte oynayacağı, haritasını ve avatarını ç
 1. GitHub'da bu deponun **Actions** sekmesine girin, en son başarılı **Derleme** çalışmasını açın.
 2. Sayfanın altındaki **Artifacts** bölümünden `berenin-adasi-android` dosyasını indirin ve zipten çıkarın.
 3. `berenin-adasi.apk` dosyasını tablete gönderin (e-posta, Drive, USB) ve açın. Tablet "bilinmeyen kaynaklardan yüklemeye" izin isteyebilir.
+4. Yeni bir sürüm eskisinin üstüne kurulur. Sürüm 0.2.0 öncesi bir APK kuruluysa onu bir kez silin, sonra yenisini kurun (eski sürümler farklı bir anahtarla imzalanıyordu). Kurulu sürüm ekranın sol üstünde yazar.
 
 ## Bilgisayarda açmak
 

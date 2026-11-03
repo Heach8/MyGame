@@ -208,6 +208,13 @@ func _make_hud() -> Control:
 		avatar_button.add_theme_color_override(state, Color("1f2a44"))
 	avatar_button.pressed.connect(_open_avatar_editor)
 	row.add_child(avatar_button)
+
+	# Hangi sürümün kurulu olduğunu görmek için küçük sürüm yazısı.
+	var version := Label.new()
+	version.text = "v" + str(ProjectSettings.get_setting("application/config/version", ""))
+	version.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
+	version.add_theme_font_size_override("font_size", 16)
+	row.add_child(version)
 	return row
 
 
