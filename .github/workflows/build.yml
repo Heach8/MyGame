@@ -77,6 +77,22 @@ jobs:
           ./godot --headless --path . --export-debug "Android" build/berenin-adasi.apk 2>&1 | tee export.log
           test -s build/berenin-adasi.apk
 
+      - name: Ekran görüntüleri al (karakterleri görmek için)
+        continue-on-error: true
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mesa-vulkan-drivers xvfb > /dev/null
+          mkdir -p shots
+          xvfb-run -a -s "-screen 0 1280x720x24" ./godot --path . --resolution 1280x720 --script res://tests/screenshot.gd -- "$PWD/shots" 2>&1 | tail -20
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: ekran-goruntuleri
+          path: shots/
+          retention-days: 14
+
       - uses: actions/upload-artifact@v4
         with:
           name: berenin-adasi-android
