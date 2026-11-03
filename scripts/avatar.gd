@@ -149,8 +149,9 @@ func setup(look: Dictionary) -> void:
 func _build_face() -> void:
 	# Kafatası ve çene: yumurta biçimli dönel yüzey, yüz tarafı hafif öne çıkık.
 	var skull := _mesh(head, _lathe([
-		[-0.27, 0.0], [-0.255, 0.07], [-0.22, 0.13], [-0.15, 0.18], [-0.05, 0.208],
-		[0.05, 0.215], [0.13, 0.2], [0.2, 0.16], [0.25, 0.09], [0.27, 0.0]], 28), skin_mat, Vector3.ZERO)
+		[-0.27, 0.0], [-0.265, 0.04], [-0.25, 0.085], [-0.225, 0.125], [-0.19, 0.157], [-0.15, 0.181],
+		[-0.1, 0.198], [-0.05, 0.208], [0.0, 0.213], [0.05, 0.215], [0.1, 0.208], [0.14, 0.195],
+		[0.18, 0.174], [0.215, 0.145], [0.24, 0.11], [0.258, 0.07], [0.268, 0.035], [0.27, 0.0]], 36), skin_mat, Vector3.ZERO)
 	skull.scale = Vector3(1.0, 1.0, 1.06)
 	for side in [-1.0, 1.0]:
 		var ear := _mesh(head, MapBuilder.sphere(0.045, 10, 8), skin_mat, Vector3(0.205 * side, -0.02, 0.01))
@@ -186,11 +187,11 @@ func _build_face() -> void:
 	bridge.scale = Vector3(0.8, 2.0, 0.7)
 
 	# Dudaklar
-	var lip_mat := _soft_mat(Color("cf7b78"), 0.45, 0.0)
-	var upper := _mesh(head, _capsule_x(0.008, 0.056), lip_mat, Vector3(0, -0.118, 0.199))
+	var lip_mat := _soft_mat(Color("c26f6c"), 0.45, 0.0)
+	var upper := _mesh(head, _capsule_x(0.0065, 0.054), lip_mat, Vector3(0, -0.119, 0.199))
 	upper.scale = Vector3(1.0, 1.0, 0.7)
 	upper.rotation.z = PI / 2.0
-	var lower := _mesh(head, _capsule_x(0.0095, 0.05), lip_mat, Vector3(0, -0.134, 0.194))
+	var lower := _mesh(head, _capsule_x(0.0085, 0.044), lip_mat, Vector3(0, -0.132, 0.195))
 	lower.scale = Vector3(1.0, 1.0, 0.7)
 	lower.rotation.z = PI / 2.0
 
@@ -216,7 +217,7 @@ func _build_hair(style: String) -> void:
 		child.queue_free()
 	# Ortak: başın üstünü saran, alnı açık bırakan kabuk ve başın arkasını örten kubbe.
 	var shell := _mesh(_hair_root, _lathe([
-		[0.105, 0.226], [0.135, 0.218], [0.21, 0.174], [0.265, 0.098], [0.292, 0.0]], 28, true), hair_mat, Vector3.ZERO)
+		[0.105, 0.228], [0.14, 0.22], [0.18, 0.199], [0.215, 0.17], [0.245, 0.13], [0.27, 0.085], [0.285, 0.04], [0.29, 0.0]], 36, true), hair_mat, Vector3(0, 0.012, 0))
 	shell.scale = Vector3(1.0, 1.0, 1.07)
 	var dome := SphereMesh.new()
 	dome.radius = 0.226

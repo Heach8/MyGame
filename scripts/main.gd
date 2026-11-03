@@ -133,9 +133,9 @@ func _build_environment() -> void:
 	# Gökyüzü ışığının yarısı kadar sıcak beyaz ışık: tenler mavimsi görünmesin.
 	env.ambient_light_sky_contribution = 0.55
 	env.ambient_light_color = Color("fff4e6")
-	env.ambient_light_energy = 0.8
+	env.ambient_light_energy = 0.7
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.tonemap_exposure = 1.05
+	env.tonemap_exposure = 1.0
 	env.fog_enabled = true
 	env.fog_light_color = Color("d6f0fc")
 	env.fog_density = 0.004
