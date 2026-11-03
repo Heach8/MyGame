@@ -51,8 +51,10 @@ jobs:
 
       - name: Android ayarlarını hazırla
         run: |
-          keytool -genkeypair -v -keystore "$PWD/debug.keystore" -storepass android -alias androiddebugkey \
-            -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          # Sabit test anahtarı: her derleme aynı imzayı taşır, böylece yeni APK eskisinin üstüne kurulur.
+          cp android/debug.keystore "$PWD/debug.keystore"
+          # Her derlemeye artan sürüm numarası ver (Android güncellemeyi kabul etsin).
+          sed -i "s/^version\/code=.*/version\/code=${{ github.run_number }}/" export_presets.cfg
           mkdir -p "$HOME/.config/godot"
           printf '%s\n' \
             '[gd_resource type="EditorSettings" format=3]' \
