@@ -11,7 +11,8 @@ on:
   workflow_dispatch:
 
 env:
-  GODOT_VERSION: "4.3"
+  GODOT_VERSION: "4.6.3"
+  GODOT_MINOR: "4.6"
 
 jobs:
   android:
@@ -37,11 +38,13 @@ jobs:
           unzip -q templates.tpz -d /tmp/tpl
           mv /tmp/tpl/templates/* "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable/"
 
-      - name: Projeyi içe aktar ve betikleri kontrol et
+      - name: Projeyi içe aktar, betikleri ve testleri kontrol et
         run: |
           ./godot --headless --path . --import 2>&1 | tee import.log
           ./godot --headless --path . --quit-after 180 2>&1 | tee run.log
-          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|Invalid call|Invalid access" import.log run.log; then
+          ./godot --headless --path . --script res://tests/test_runner.gd 2>&1 | tee test.log
+          test "${PIPESTATUS[0]}" -eq 0
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|Invalid call|Invalid access" import.log run.log test.log; then
             echo "::error::Godot betik hatası bulundu"
             exit 1
           fi
@@ -60,7 +63,7 @@ jobs:
             "export/android/debug_keystore = \"$PWD/debug.keystore\"" \
             'export/android/debug_keystore_user = "androiddebugkey"' \
             'export/android/debug_keystore_pass = "android"' \
-            > "$HOME/.config/godot/editor_settings-${GODOT_VERSION}.tres"
+            > "$HOME/.config/godot/editor_settings-${GODOT_MINOR}.tres"
 
       - name: Android test sürümünü (APK) oluştur
         env:

@@ -1,5 +1,5 @@
 ; Engine configuration file.
-; Godot 4.3 ile açın: Proje > İçe aktar > bu klasör.
+; Godot 4.6 ile açın: Proje > İçe aktar > bu klasör.
 
 config_version=5
 
@@ -9,7 +9,7 @@ config/name="Berenin Adası"
 config/description="Arkadaşlarla birlikte oynanan, haritası ve avatarı çocuğun kendisi tarafından yapılan 3D ada oyunu."
 config/version="0.1.0"
 run/main_scene="res://scenes/main.tscn"
-config/features=PackedStringArray("4.3", "Mobile")
+config/features=PackedStringArray("4.6", "Mobile")
 config/icon="res://icon.svg"
 
 [display]
