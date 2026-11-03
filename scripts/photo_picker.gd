@@ -23,7 +23,8 @@ var _step := 0
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fit_screen()
+	get_viewport().size_changed.connect(_fit_screen)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 	var bg := ColorRect.new()
@@ -180,3 +181,10 @@ func _button(text: String, bg: Color, callback: Callable) -> Button:
 		b.add_theme_color_override(state, INK)
 	b.pressed.connect(callback)
 	return b
+
+
+## Ekranın tamamını kaplar. CanvasLayer altındaki Control'lerde çapalar boyut vermediği için
+## boyutu ekrandan alır ve ekran döndüğünde/değiştiğinde günceller.
+func _fit_screen() -> void:
+	position = Vector2.ZERO
+	size = get_viewport_rect().size
