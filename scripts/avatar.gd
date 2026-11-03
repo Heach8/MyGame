@@ -51,12 +51,12 @@ var _blink_at := 2.0
 func setup(look: Dictionary) -> void:
 	_time = randf() * 10.0
 	_blink_at = _time + randf_range(1.0, 4.0)
-	skin_mat = _soft_mat(Color.WHITE, 0.62, 0.25)
-	body_mat = _soft_mat(Color.WHITE, 0.92, 0.12)
-	hair_mat = _soft_mat(Color.WHITE, 0.5, 0.35)
+	skin_mat = _soft_mat(Color.WHITE, 0.6, 0.08)
+	body_mat = _soft_mat(Color.WHITE, 0.92, 0.05)
+	hair_mat = _soft_mat(Color.WHITE, 0.5, 0.15)
 	brow_mat = hair_mat
 	eye_mat = MapBuilder.mat(Color.WHITE, 0.25)
-	pants_mat = _soft_mat(Color.WHITE, 0.95, 0.08)
+	pants_mat = _soft_mat(Color.WHITE, 0.95, 0.05)
 	var shoe_mat := _soft_mat(Color("f4f1ea"), 0.7, 0.1)
 	var sole_mat := MapBuilder.mat(Color("3a3a46"), 0.9)
 
@@ -152,10 +152,7 @@ func _build_face() -> void:
 		[-0.27, 0.0], [-0.255, 0.07], [-0.22, 0.13], [-0.15, 0.18], [-0.05, 0.208],
 		[0.05, 0.215], [0.13, 0.2], [0.2, 0.16], [0.25, 0.09], [0.27, 0.0]], 28), skin_mat, Vector3.ZERO)
 	skull.scale = Vector3(1.0, 1.0, 1.06)
-	# Yanaklar ve çene hattına yumuşaklık.
 	for side in [-1.0, 1.0]:
-		var cheek := _mesh(head, MapBuilder.sphere(0.075, 12, 8), skin_mat, Vector3(0.105 * side, -0.085, 0.15))
-		cheek.scale = Vector3(1.0, 0.85, 0.7)
 		var ear := _mesh(head, MapBuilder.sphere(0.045, 10, 8), skin_mat, Vector3(0.205 * side, -0.02, 0.01))
 		ear.scale = Vector3(0.45, 1.0, 0.75)
 
@@ -168,32 +165,32 @@ func _build_face() -> void:
 	_lids.clear()
 	for side in [-1.0, 1.0]:
 		var eye := Node3D.new()
-		eye.position = Vector3(0.078 * side, 0.005, 0.168)
+		eye.position = Vector3(0.08 * side, 0.005, 0.186)
 		head.add_child(eye)
-		var ball := _mesh(eye, MapBuilder.sphere(0.042, 16, 10), white, Vector3.ZERO)
-		ball.scale = Vector3(1.0, 0.92, 0.6)
-		var iris := _mesh(eye, MapBuilder.sphere(0.027, 14, 8), eye_mat, Vector3(0, -0.002, 0.018))
+		var ball := _mesh(eye, MapBuilder.sphere(0.044, 16, 10), white, Vector3.ZERO)
+		ball.scale = Vector3(1.0, 0.86, 0.7)
+		var iris := _mesh(eye, MapBuilder.sphere(0.027, 16, 8), eye_mat, Vector3(0, -0.002, 0.022))
 		iris.scale = Vector3(1.0, 1.05, 0.45)
-		var pup := _mesh(eye, MapBuilder.sphere(0.013, 10, 6), pupil, Vector3(0, -0.002, 0.027))
+		var pup := _mesh(eye, MapBuilder.sphere(0.013, 10, 6), pupil, Vector3(0, -0.002, 0.03))
 		pup.scale = Vector3(1.0, 1.0, 0.4)
-		_mesh(eye, MapBuilder.sphere(0.0065, 6, 4), shine, Vector3(-0.009, 0.011, 0.031))
+		_mesh(eye, MapBuilder.sphere(0.0065, 6, 4), shine, Vector3(-0.009, 0.011, 0.034))
 		_lids.append(eye)  # göz kırparken dikeyde kapanır
 		# Kaş
-		var brow := _mesh(head, _capsule_x(0.011, 0.075), brow_mat, Vector3(0.082 * side, 0.072, 0.188))
+		var brow := _mesh(head, _capsule_x(0.011, 0.075), brow_mat, Vector3(0.082 * side, 0.074, 0.203))
 		brow.rotation.z = PI / 2.0 - 0.12 * side
 
 	# Burun
-	var nose := _mesh(head, MapBuilder.sphere(0.03, 12, 8), skin_mat, Vector3(0, -0.045, 0.218))
-	nose.scale = Vector3(0.9, 1.0, 0.85)
-	var bridge := _mesh(head, MapBuilder.sphere(0.022, 10, 6), skin_mat, Vector3(0, -0.005, 0.212))
-	bridge.scale = Vector3(0.8, 1.8, 0.8)
+	var nose := _mesh(head, MapBuilder.sphere(0.021, 12, 8), skin_mat, Vector3(0, -0.05, 0.222))
+	nose.scale = Vector3(0.95, 0.85, 0.8)
+	var bridge := _mesh(head, MapBuilder.sphere(0.015, 10, 6), skin_mat, Vector3(0, -0.018, 0.218))
+	bridge.scale = Vector3(0.8, 2.0, 0.7)
 
 	# Dudaklar
-	var lip_mat := _soft_mat(Color("d9787a"), 0.5, 0.1)
-	var upper := _mesh(head, _capsule_x(0.011, 0.075), lip_mat, Vector3(0, -0.118, 0.198))
+	var lip_mat := _soft_mat(Color("cf7b78"), 0.45, 0.0)
+	var upper := _mesh(head, _capsule_x(0.008, 0.056), lip_mat, Vector3(0, -0.118, 0.199))
 	upper.scale = Vector3(1.0, 1.0, 0.7)
 	upper.rotation.z = PI / 2.0
-	var lower := _mesh(head, _capsule_x(0.013, 0.065), lip_mat, Vector3(0, -0.135, 0.194))
+	var lower := _mesh(head, _capsule_x(0.0095, 0.05), lip_mat, Vector3(0, -0.134, 0.194))
 	lower.scale = Vector3(1.0, 1.0, 0.7)
 	lower.rotation.z = PI / 2.0
 
@@ -230,10 +227,6 @@ func _build_hair(style: String) -> void:
 	var back_dome := _mesh(_hair_root, dome, hair_mat, Vector3(0, 0.03, -0.015))
 	back_dome.rotation.x = -PI / 2.0
 	back_dome.scale = Vector3(1.0, 1.12, 1.03)
-	# Alında yana taranmış perçem
-	var fringe := _mesh(_hair_root, MapBuilder.sphere(0.12, 16, 8), hair_mat, Vector3(-0.06, 0.175, 0.13))
-	fringe.scale = Vector3(1.35, 0.42, 0.75)
-	fringe.rotation.z = 0.25
 	# Şakaklarda saç
 	for side in [-1.0, 1.0]:
 		var temple := _mesh(_hair_root, MapBuilder.sphere(0.07, 10, 8), hair_mat, Vector3(0.188 * side, 0.06, 0.04))
